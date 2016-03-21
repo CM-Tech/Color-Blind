@@ -41,7 +41,9 @@ function bubble(color) {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fill();
     for (var i = 0; i < bubbles.length; i++) {
         bubbles[i].x += bubbles[i].speedX;
         bubbles[i].y += bubbles[i].speedY;
@@ -106,9 +108,12 @@ function drawbubble(x, y, color) {
     ctx.fill();
     ctx.stroke();
 }
+var dend = false;
 
 function drawend() {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fill();
     for (var i = 0; i < bubbles.length; i++) {
         bubbles[i].x += bubbles[i].speedX;
         bubbles[i].y += bubbles[i].speedY;
@@ -149,10 +154,9 @@ function LightenDarkenColor(col, amt) {
 }
 
 function animate(elem, animation) {
-    elem.className += (" animated " + animation);
+    elem.classList.add("animated", animation);
     elem.addEventListener("animationend", function() {
-        elem.className = elem.className.replace(/animated/g, '').replace(/\banimation\b/g, '');
-        console.log(elem.className.replace(/animated/g, '').replace(/\banimation\b/g, ''));
+        elem.classList.remove("animated", animation);
     }, false);
 }
 document.body.onclick = function(event) {
@@ -165,7 +169,7 @@ document.body.onclick = function(event) {
             var xd = Math.pow(Math.abs(mouseX - bubbles[i].x), 2);
             var yd = Math.pow(Math.abs(mouseY - bubbles[i].y), 2);
             var dis = Math.sqrt(xd + yd);
-            if (dis < 50) {
+            if (dis < 62) {
                 ondot = true;
                 if (bubbles[i].color == color) {
                     correct = true;
@@ -177,8 +181,12 @@ document.body.onclick = function(event) {
     if (ondot === true) {
         if (correct === true) {
             score++;
+            animate(c, "bounce");
         } else {
             lives--;
+            if (lives >= 0) {
+                animate(c, "headShake");
+            }
         }
         fake = colors[Math.floor(Math.random() * (colors.length))];
         color = colors[Math.floor(Math.random() * (colors.length))];
@@ -203,6 +211,9 @@ var timer = 0;
     if (lives >= 0) {
         draw();
     } else {
+        if (dend === false) {
+            animate(c, "rubberBand");
+        }
         drawend();
     }
     if (timer == 15) {
