@@ -5,6 +5,7 @@ window.requestAnimFrame = (function() {
         window.setTimeout(callback, 1000 / 60);
     };
 })();
+
 var c = document.getElementById("c");
 var ctx = c.getContext("2d");
 c.height = window.innerHeight;
@@ -17,6 +18,9 @@ var fake = colors[Math.floor(Math.random() * (colors.length))];
 var score = 0;
 var lives = 3;
 var clicked = false;
+var settime = 150;
+var time = settime;
+var incorrect = 0;
 
 function bubble(color) {
     var w = Math.floor(Math.random() * 4 + 1);
@@ -45,8 +49,8 @@ function draw() {
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.fill();
     for (var i = 0; i < bubbles.length; i++) {
-        bubbles[i].x += bubbles[i].speedX;
-        bubbles[i].y += bubbles[i].speedY;
+        bubbles[i].x += bubbles[i].speedX*2;
+        bubbles[i].y += bubbles[i].speedY*2;
         drawbubble(bubbles[i].x, bubbles[i].y, bubbles[i].color);
         if (bubbles[i].x > window.innerWidth + 50 || bubbles[i].y > window.innerHeight + 50 || bubbles[i].x < -50 || bubbles[i].y < -50) {
             bubbles.splice(i, 1);
@@ -64,7 +68,7 @@ function draw() {
             tcolor = "Green";
             break;
         case "#0000ff":
-            tcolor = "Blue";
+            tcolor = "Dark Blue";
             break;
         case "#ff00ff":
             tcolor = "Purple";
@@ -90,6 +94,15 @@ function draw() {
     ctx.fillStyle = "black";
     ctx.fillText("Score: " + score, 0, 30);
     ctx.fillText("Lives: " + lives, window.innerWidth - ctx.measureText("Lives: " + lives).width, 30);
+
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.fillStyle = "black";
+    ctx.lineWidth = 10;
+    ctx.moveTo(window.innerWidth / 2, window.innerHeight / 2 + 60);
+    ctx.arc(window.innerWidth / 2, window.innerHeight / 2 + 60, 50, 1.5 * Math.PI, (1.5 + (time * 2 / (settime+incorrect))) * Math.PI, true);
+    ctx.lineTo(window.innerWidth / 2, window.innerHeight / 2 + 60);
+    ctx.fill();
 }
 
 function drawbubble(x, y, color) {
@@ -110,13 +123,14 @@ function drawbubble(x, y, color) {
 }
 var dend = false;
 
+
 function drawend() {
     ctx.fillStyle = "rgba(255,255,255,0.2)";
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.fill();
     for (var i = 0; i < bubbles.length; i++) {
-        bubbles[i].x += bubbles[i].speedX;
-        bubbles[i].y += bubbles[i].speedY;
+        bubbles[i].x += bubbles[i].speedX*2;
+        bubbles[i].y += bubbles[i].speedY*2;
         drawbubble(bubbles[i].x, bubbles[i].y, bubbles[i].color);
         if (bubbles[i].x > window.innerWidth + 50 || bubbles[i].y > window.innerHeight + 50 || bubbles[i].x < -50 || bubbles[i].y < -50) {
             bubbles.splice(i, 1);
@@ -169,7 +183,7 @@ document.body.onclick = function(event) {
             var xd = Math.pow(Math.abs(mouseX - bubbles[i].x), 2);
             var yd = Math.pow(Math.abs(mouseY - bubbles[i].y), 2);
             var dis = Math.sqrt(xd + yd);
-            if (dis < 62) {
+            if (dis < 100) {
                 ondot = true;
                 if (bubbles[i].color == color) {
                     correct = true;
@@ -181,9 +195,12 @@ document.body.onclick = function(event) {
     if (ondot === true) {
         if (correct === true) {
             score++;
+            incorrect-=25;
             animate(c, "bounce");
+            time = settime+incorrect;
         } else {
             lives--;
+            incorrect+=50;
             if (lives >= 0) {
                 animate(c, "headShake");
             }
@@ -199,26 +216,44 @@ document.body.onkeypress = function(event) {
         lives = 3;
         score = 0;
         clicked = false;
+        time = 0;
+        timer = 0;
     }
 };
 document.body.onresize = function() {
     c.height = window.innerHeight;
     c.width = window.innerWidth;
 };
+for (var i = 0; i < ((window.innerWidth * window.innerHeight) / 19000); i++) {
+    bubbles.push(new bubble(colors[Math.floor(Math.random() * (colors.length))]));
+    for (var z = 0; z < 10; z++) {
+        bubbles[i].x += bubbles[i].speedX*2;
+        bubbles[i].y += bubbles[i].speedY*2;
+    }
+}
 var timer = 0;
 (function animloop() {
     requestAnimFrame(animloop);
     if (lives >= 0) {
         draw();
+        if (time === 0) {
+            lives--;
+            incorrect+=50;
+            time = settime+incorrect;
+            animate(c, "headShake");
+        }
     } else {
         if (dend === false) {
             animate(c, "rubberBand");
         }
         drawend();
     }
-    if (timer == 15) {
-        bubbles.push(new bubble(colors[Math.floor(Math.random() * (colors.length))]));
+    if (timer == 100) {
+        for (var i = 0; i < ((window.innerWidth * window.innerHeight) / 19000); i++) {
+            bubbles.push(new bubble(colors[Math.floor(Math.random() * (colors.length))]));
+        }
         timer = 0;
     }
+    time--;
     timer++;
 })();
